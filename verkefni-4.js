@@ -5,8 +5,9 @@ const width = canvas.width = window.innerWidth; // Set canvas width to window in
 const height = canvas.height = window.innerHeight; // Set canvas height to window inner height
 
 let score = 0; // Initialize score variable
-let life = 3; // Initialize lives variable
+// let life = 3; // Initialize lives variable
 const pinkk = 'rgba(255, 182, 177, 255)' // Pink color variable
+const ghostSpriteSize = 13; // sets ghost spritesize to 13px
 var beginSfx = new Audio(); beginSfx.src = 'audio/pacman_beginning.wav'; beginSfx.volume = 0.1; beginSfx.loop = false;
 var wacaSfx = new Audio(); wacaSfx.src = 'audio/pacman_chomp.wav'; wacaSfx.volume = 0.1; wacaSfx.loop = true;
 var deathSfx = new Audio(); deathSfx.src = 'audio/pacman_death.wav'; deathSfx.volume = 0.1; deathSfx.loop = false;
@@ -15,7 +16,6 @@ var eatFruit = new Audio(); eatFruit.src = 'audio/pacman_eatfruit.wav'; eatFruit
 var eatGhost = new Audio(); eatGhost.src = 'audio/pacman_eatghost.wav'; eatGhost.volume = 0.1; eatGhost.loop = false;
 var gameRunning = false;
 
-const ghostSpriteSize = 13; // sets ghost spritesize to 13px
 
 
 
@@ -299,6 +299,7 @@ class Pacman {
     this.radius = 25;
     this.angle = 0; // Angle starts at 0
     this.exists = true;
+    this.life = 3;
 
     // Keyboard event functions
     addEventListener('keydown', (event) => {
@@ -375,7 +376,7 @@ class Pacman {
       else if (touchYDiff < 0)
         y = -2;
 
-        this.changeVelocity(x, y);
+      this.changeVelocity(x, y);
     });
     canvas.addEventListener('touchend', (event) => {
       pacman.changeVelocity(0, 0);
@@ -383,12 +384,17 @@ class Pacman {
   }
 
   reset() {
-    this.position = { x: 100, y: 100 };
-    this.velocity = { x: 0, y: 0 };
+    this.resetLocation();
     this.color = "yellow";
     this.radius = 25;
     this.angle = 0; // Angle starts at 0
     this.exists = true;
+    this.life = 3;
+  }
+
+  resetLocation() {
+    this.position = { x: 100, y: 100 };
+    this.velocity = { x: 0, y: 0 };
   }
 
   // Update Pacman's angle based on the velocity
@@ -456,13 +462,14 @@ class Pacman {
         const dy = this.position.y - ghost.y;
         const distance = Math.sqrt(dx * dx + dy * dy); // √(dx^2 + dy^2)
         if (distance < this.radius + ghost.radius) {
-          life--; // Decrease the lives value.
-          pacman.reset();
-          window.navigator.vibrate(2000); // vibrate phone
-          para.textContent = 'Score: ' + score + ' Lives: ' + life; // Update the stats display.
+          this.life--; // Decrease the lives value.
+          pacman.resetLocation();
+          navigator.vibrate([2000,200,2000]); // vibrate phone
+          para.textContent = 'Score: ' + score + ' Lives: ' + this.life; // Update the stats display.
           console.log(para.textContent);
-          if (life < 1) {
+          if (this.life < 1) {
             this.exists = false;
+            navigator.vibrate([500,200,500,200,3000]); // vibrate phone
             return true;
           }
         }
@@ -483,7 +490,7 @@ class Pacman {
         if (distance < this.radius + dot.radius) {
           dot.exists = false; // Remove the dot from the canvas.
           score++; // Increase the score value.
-          para.textContent = 'Score: ' + score + ' Lives: ' + life; // Update the stats display.
+          para.textContent = 'Score: ' + score + ' Lives: ' + this.life; // Update the stats display.
           window.navigator.vibrate(100);
         }
       }
