@@ -357,6 +357,25 @@ class Pacman {
       this.changeVelocity(x, y);
     });
 
+    // Motion control function
+    addEventListener("deviceorientation", (event) => {
+      console.log("ORI", event);
+      let x = this.velocity.x;
+      let y = this.velocity.y;
+      
+      // Vinstri & Hægri ←→
+      if(event.beta > 100) x = 2;
+      else if(event.beta < -100) x = -2;
+      else x = 0;
+      
+      // Upp & Niður ↑↓
+      if (event.gamma > -80 && event.gamma < 0) y = -2;
+      else if (event.gamma > 0 && event.gamma < 80) y = 2;
+      
+      this.velocity.x = x;
+      this.velocity.y = y;
+    });
+
     // Touch event functions
     canvas.addEventListener('touchstart', (event) => {
       const touchX = event.touches[0].clientX; // Get the x-coordinate of the touch
