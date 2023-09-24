@@ -300,9 +300,10 @@ class Pacman {
     this.angle = 0; // Angle starts at 0
     this.exists = true;
 
+    // Keyboard event functions
     addEventListener('keydown', (event) => {
-      let x = pacman.velocity.x;
-      let y = pacman.velocity.y;
+      let x = this.velocity.x;
+      let y = this.velocity.y;
       switch (event.key) {
         case 'w': // North ↑
           y = -2;
@@ -337,11 +338,11 @@ class Pacman {
         //   break;
       }
 
-      pacman.changeVelocity(x, y);
+      this.changeVelocity(x, y);
     });
     addEventListener('keyup', ({ key }) => {
-      let x = pacman.velocity.x;
-      let y = pacman.velocity.y;
+      let x = this.velocity.x;
+      let y = this.velocity.y;
       switch (key) {
         case 'w':
         case 's':
@@ -352,29 +353,29 @@ class Pacman {
           x = 0;
           break;
       }
-      pacman.changeVelocity(x, y);
+      this.changeVelocity(x, y);
     });
 
-    // Touch event function
+    // Touch event functions
     canvas.addEventListener('touchstart', (event) => {
       const touchX = event.touches[0].clientX; // Get the x-coordinate of the touch
       const touchY = event.touches[0].clientY; // Get the y-coordinate of the touch
 
-      const touchXDiff = touchX - pacman.position.x;
-      let x = pacman.velocity.x;
-      let y = pacman.velocity.y;
+      const touchXDiff = touchX - this.position.x;
+      let x = this.velocity.x;
+      let y = this.velocity.y;
       if (touchXDiff > 0)
         x = 2;
       else if (touchXDiff < 0)
         x = -2;
 
-      const touchYDiff = touchY - pacman.position.y;
+      const touchYDiff = touchY - this.position.y;
       if (touchYDiff > 0)
         y = 2;
       else if (touchYDiff < 0)
         y = -2;
 
-      pacman.changeVelocity(x, y);
+        this.changeVelocity(x, y);
     });
     canvas.addEventListener('touchend', (event) => {
       pacman.changeVelocity(0, 0);
@@ -392,10 +393,10 @@ class Pacman {
 
   // Update Pacman's angle based on the velocity
   changeVelocity(x, y) {
-    pacman.velocity.x = x;
-    pacman.velocity.y = y;
-    if (pacman.exists && (x !== 0 || y !== 0)) {
-      pacman.angle = Math.atan2(y, x);
+    this.velocity.x = x;
+    this.velocity.y = y;
+    if (this.exists && (x !== 0 || y !== 0)) {
+      this.angle = Math.atan2(y, x);
       if (wacaSfx.paused)
         wacaSfx.play();
     }
@@ -456,8 +457,10 @@ class Pacman {
         const distance = Math.sqrt(dx * dx + dy * dy); // √(dx^2 + dy^2)
         if (distance < this.radius + ghost.radius) {
           life--; // Decrease the lives value.
+          pacman.reset();
           window.navigator.vibrate(200); // vibrate phone
           para.textContent = 'Score: ' + score + ' Lives: ' + life; // Update the stats display.
+          console.log(para.textContent);
           if (life < 1) {
             this.exists = false;
             return true;
@@ -591,14 +594,14 @@ function setOrientation() {
 function runGame() {
   document.addEventListener('keydown', (event) => {
     if (!gameRunning) {
-      setOrientation();
+      // setOrientation();
       document.getElementById("startScreen").style.display = "none";
       startGame();
     }
   });
   canvas.addEventListener('touchstart', (event) => {
     if (!gameRunning) {
-      setOrientation();
+      // setOrientation();
       document.getElementById("startScreen").style.display = "none";
       startGame();
     }
@@ -614,8 +617,6 @@ function startGame() {
 
 // Main animation loop
 function animate() {
-  requestAnimationFrame(animate);
-
   clear();
 
   dots.forEach(dot => {
@@ -637,7 +638,7 @@ function animate() {
     ghost.draw();
   });
 
-  if (pacman.exists) {
+  if (pacman && pacman.exists) {
     pacman.update();
     // Tapa
   } else {
@@ -647,6 +648,8 @@ function animate() {
   if (score > 49) {
     gameWin();
   }
+
+  requestAnimationFrame(animate);
 }
 
 // window.addEventListener("orientationchange", function () {
