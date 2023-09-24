@@ -5,7 +5,6 @@ const width = canvas.width = window.innerWidth; // Set canvas width to window in
 const height = canvas.height = window.innerHeight; // Set canvas height to window inner height
 
 let score = 0; // Initialize score variable
-// let life = 3; // Initialize lives variable
 const pinkk = 'rgba(255, 182, 177, 255)' // Pink color variable
 const ghostSpriteSize = 13; // sets ghost spritesize to 13px
 var beginSfx = new Audio(); beginSfx.src = 'audio/pacman_beginning.wav'; beginSfx.volume = 0.1; beginSfx.loop = false;
@@ -38,17 +37,17 @@ function clear() {
 }
 
 // Toggle fullscreen button
-function toggleFullscreen() {
+function toggleFullscreen(forceFull) {
   var elem = document.documentElement; // Get the root element of the document
   var toggleButton = document.getElementById("fullscreenButton"); // Get the button element
 
   // Check if fullscreen mode is active in different browsers
-  if (
+  if (!forceFull && (
     document.fullscreenElement || // Standard fullscreen mode
     document.webkitFullscreenElement || // Chrome, Safari, and Opera
     document.mozFullScreenElement || // Firefox
     document.msFullscreenElement // IE/Edge
-  ) {
+  )) {
     // If fullscreen mode is active
     if (document.exitFullscreen) {
       document.exitFullscreen(); // Exit fullscreen mode
@@ -71,7 +70,7 @@ function toggleFullscreen() {
       elem.msRequestFullscreen(); // IE/Edge
     }
     toggleButton.style.backgroundColor = "rgb(0, 255, 0)"; // Set the button color to green
-    document.fullscreenElement.appendChild(toggleButton); // Move the button element to the fullscreen element
+    // document.fullscreenElement.appendChild(toggleButton); // Move the button element to the fullscreen element
   }
 }
 
@@ -101,24 +100,13 @@ function gameWin() {
   }
 }
 
-// Only allows a function to be called only once
-function allowOnlyOneCall(f) {
-  return function () {
-    f.apply(this, arguments);
-    f = function () { };
-  }
-}
-
-// gameOver = allowOnlyOneCall(gameOver);
-// gameWin = allowOnlyOneCall(gameWin);
-
 // Powerpellets blikka function
 function togglePowerpelletColor() {
   for (const powerpellet of powerpellets) {
     // If powerpellet exists
     if (powerpellet.exists) {
-      // If Color was pinky, Color is now yellow.
-      // Otherwise, Color is now pinky.
+      // If Color was pinkk, Color is now black.
+      // Otherwise, Color is now pinkk.
       powerpellet.color = powerpellet.color === pinkk ? "black" : pinkk;
     }
   }
@@ -359,21 +347,19 @@ class Pacman {
 
     // Motion control function
     addEventListener("deviceorientation", (event) => {
-      console.log("ORI", event);
-      let x = this.velocity.x;
-      let y = this.velocity.y;
-      
       // Vinstri & Hægri ←→
-      if(event.beta > 100) x = 2;
-      else if(event.beta < -100) x = -2;
-      else x = 0;
-      
+      if (event.beta > 100)
+        this.velocity.x = 2;
+      else if (event.beta < -100)
+        this.velocity.x = -2;
+      else
+        this.velocity.x = 0;
+
       // Upp & Niður ↑↓
-      if (event.gamma > -80 && event.gamma < 0) y = -2;
-      else if (event.gamma > 0 && event.gamma < 80) y = 2;
-      
-      this.velocity.x = x;
-      this.velocity.y = y;
+      if (event.gamma > -80 && event.gamma < 0)
+        this.velocity.y = -2;
+      else if (event.gamma > 0 && event.gamma < 80)
+        this.velocity.y = 2;
     });
 
     // Touch event functions
@@ -403,7 +389,7 @@ class Pacman {
   }
 
   reset() {
-    this.resetLocation();
+    this.resetLocation(); // moves pacman to default location
     this.color = "yellow";
     this.radius = 25;
     this.angle = 0; // Angle starts at 0
@@ -482,13 +468,13 @@ class Pacman {
         const distance = Math.sqrt(dx * dx + dy * dy); // √(dx^2 + dy^2)
         if (distance < this.radius + ghost.radius) {
           this.life--; // Decrease the lives value.
-          pacman.resetLocation();
-          navigator.vibrate([2000,200,2000]); // vibrate phone
+          pacman.resetLocation(); // move pacman to default location
+          navigator.vibrate([300, 200, 300]); // vibrate phone
           para.textContent = 'Score: ' + score + ' Lives: ' + this.life; // Update the stats display.
           console.log(para.textContent);
-          if (this.life < 1) {
+          if (this.exists && this.life < 1) {
             this.exists = false;
-            navigator.vibrate([500,200,500,200,3000]); // vibrate phone
+            navigator.vibrate([500, 200, 300, 200, 300, 200, 3000]); // vibrate phone
             return true;
           }
         }
@@ -547,7 +533,6 @@ class Pacman {
     }
 
     pacman.draw();
-
   }
 }
 
@@ -601,13 +586,16 @@ function setOrientation() {
       .lock("landscape")
       .then(function () { // Orientation locked successfully
         console.log("Orientation locked to landscape.");
+        document.getElementById("fullscreenButton").style.color = "rgb(0,255,0)";
       })
       .catch(function (error) { // Handle any errors
         console.error("Error locking orientation:", error);
+        document.getElementById("fullscreenButton").style.color = "rgb(255,255,0)";
       });
   } else {
     // If orientation locking is not supported, you can display a message or perform another action.
     console.warn("Orientation locking is not supported in this browser.");
+    document.getElementById("fullscreenButton").style.color = "rgb(0,0,255)";
   }
 
   screen.orientation.addEventListener("change", (event) => {
@@ -620,14 +608,16 @@ function setOrientation() {
 function runGame() {
   document.addEventListener('keydown', (event) => {
     if (!gameRunning) {
-      // setOrientation();
+      toggleFullscreen(true);
+      setOrientation();
       document.getElementById("startScreen").style.display = "none";
       startGame();
     }
   });
   canvas.addEventListener('touchstart', (event) => {
     if (!gameRunning) {
-      // setOrientation();
+      toggleFullscreen(true);
+      setOrientation();
       document.getElementById("startScreen").style.display = "none";
       startGame();
     }
@@ -677,28 +667,6 @@ function animate() {
 
   requestAnimationFrame(animate);
 }
-
-// window.addEventListener("orientationchange", function () {
-//   window.screen.orientation.lock("landscape"); // Permission denied for some reason?
-// }, false);
-
-// // Detect phone orientation change, then lock orientation to landscape (if supported).
-// window.addEventListener("orientationchange", function () {
-//   // Check if the browser supports orientation locking
-//   if (screen.orientation && screen.orientation.lock) {
-//     screen.orientation
-//       .lock("landscape") // Lock landscape
-//       .then(function () { // Orientation locked successfully
-//         console.log("Orientation locked to landscape.");
-//       })
-//       .catch(function (error) { // Handle any errors
-//         console.error("Error locking orientation:", error);
-//       });
-//   } else {
-//     // If orientation locking is not supported, you can display a message or perform another action.
-//     console.warn("Orientation locking is not supported in this browser.");
-//   }
-// }, false);
 
 
 const spriteSheet = new Image();
