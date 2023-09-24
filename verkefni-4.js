@@ -458,7 +458,7 @@ class Pacman {
         if (distance < this.radius + ghost.radius) {
           life--; // Decrease the lives value.
           pacman.reset();
-          window.navigator.vibrate(200); // vibrate phone
+          window.navigator.vibrate(2000); // vibrate phone
           para.textContent = 'Score: ' + score + ' Lives: ' + life; // Update the stats display.
           console.log(para.textContent);
           if (life < 1) {
@@ -561,9 +561,9 @@ while (powerpellets.length < 4) {
 // Ghosts array
 const ghosts = [
   new Ghost('blinky', random(0 + this.radius, width - this.radius), random(0 + this.radius, height - this.radius), random(1, 3), random(1, 3)),
-  new Ghost('pinky', random(0 + this.radius, width - this.radius), random(0 + this.radius, height - this.radius), random(1, 3), random(1, 3)),
-  new Ghost('inky', random(0 + this.radius, width - this.radius), random(0 + this.radius, height - this.radius), random(1, 3), random(1, 3)),
-  new Ghost('clyde', random(0 + this.radius, width - this.radius), random(0 + this.radius, height - this.radius), random(1, 3), random(1, 3))
+  // new Ghost('pinky', random(0 + this.radius, width - this.radius), random(0 + this.radius, height - this.radius), random(1, 3), random(1, 3)),
+  // new Ghost('inky', random(0 + this.radius, width - this.radius), random(0 + this.radius, height - this.radius), random(1, 3), random(1, 3)),
+  // new Ghost('clyde', random(0 + this.radius, width - this.radius), random(0 + this.radius, height - this.radius), random(1, 3), random(1, 3))
 ];
 
 // Create Pacman
