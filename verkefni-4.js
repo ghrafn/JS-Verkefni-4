@@ -361,7 +361,7 @@ class Pacman {
 
         this.changeVelocity(x, y);
       }
-    });
+    }, true);
 
     // Touch event functions
     canvas.addEventListener('touchstart', (event) => {
