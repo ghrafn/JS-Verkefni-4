@@ -7,13 +7,15 @@ const height = canvas.height = window.innerHeight; // Set canvas height to windo
 let score = 0; // Initialize score variable
 const pinkk = 'rgba(255, 182, 177, 255)' // Pink color variable
 const ghostSpriteSize = 13; // sets ghost spritesize to 13px
-var beginSfx = new Audio(); beginSfx.src = 'audio/pacman_beginning.wav'; beginSfx.volume = 0.1; beginSfx.loop = false;
+
+const beginSfx = new Audio(); beginSfx.src = 'audio/pacman_beginning.wav'; beginSfx.volume = 0.1; beginSfx.loop = false;
+const deathSfx = new Audio(); deathSfx.src = 'audio/pacman_death.wav'; deathSfx.volume = 0.1; deathSfx.loop = false;
+const winSfx = new Audio(); winSfx.src = 'audio/pacman_intermission.wav'; winSfx.volume = 0.1; winSfx.loop = false;
+const eatFruit = new Audio(); eatFruit.src = 'audio/pacman_eatfruit.wav'; eatFruit.volume = 0.1; eatFruit.loop = false;
+const eatGhost = new Audio(); eatGhost.src = 'audio/pacman_eatghost.wav'; eatGhost.volume = 0.1; eatGhost.loop = false;
 var wacaSfx = new Audio(); wacaSfx.src = 'audio/pacman_chomp.wav'; wacaSfx.volume = 0.1; wacaSfx.loop = true;
-var deathSfx = new Audio(); deathSfx.src = 'audio/pacman_death.wav'; deathSfx.volume = 0.1; deathSfx.loop = false;
-var winSfx = new Audio(); winSfx.src = 'audio/pacman_intermission.wav'; winSfx.volume = 0.1; winSfx.loop = false;
-var eatFruit = new Audio(); eatFruit.src = 'audio/pacman_eatfruit.wav'; eatFruit.volume = 0.1; eatFruit.loop = false;
-var eatGhost = new Audio(); eatGhost.src = 'audio/pacman_eatghost.wav'; eatGhost.volume = 0.1; eatGhost.loop = false;
-var gameRunning = false;
+
+let gameRunning = false;
 
 
 
@@ -25,11 +27,6 @@ function random(min, max) {
   return num;
 };
 
-// Function to generate random RGB color value
-function randomRGB() {
-  return `rgb(${random(0, 255)},${random(0, 255)},${random(0, 255)})`;
-}
-
 // Function to clear canvas by drawing black background
 function clear() {
   ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
@@ -39,7 +36,7 @@ function clear() {
 // Toggle fullscreen button
 function toggleFullscreen(forceFull) {
   var elem = document.documentElement; // Get the root element of the document
-  var toggleButton = document.getElementById("fullscreenButton"); // Get the button element
+  // var toggleButton = document.getElementById("fullscreenButton"); // Get the button element
 
   // Check if fullscreen mode is active in different browsers
   if (!forceFull && (
@@ -58,7 +55,7 @@ function toggleFullscreen(forceFull) {
     } else if (document.msExitFullscreen) {
       document.msExitFullscreen(); // IE/Edge
     }
-    toggleButton.style.backgroundColor = "rgb(255, 54, 54)"; // Set the button color to red
+    // toggleButton.style.backgroundColor = "rgb(255, 54, 54)"; // Set the button color to red
   } else {
     if (elem.requestFullscreen) {
       elem.requestFullscreen(); // Request fullscreen mode
@@ -69,7 +66,7 @@ function toggleFullscreen(forceFull) {
     } else if (elem.msRequestFullscreen) {
       elem.msRequestFullscreen(); // IE/Edge
     }
-    toggleButton.style.backgroundColor = "rgb(0, 255, 0)"; // Set the button color to green
+    // toggleButton.style.backgroundColor = "rgb(0, 255, 0)"; // Set the button color to green
     // document.fullscreenElement.appendChild(toggleButton); // Move the button element to the fullscreen element
   }
 }
@@ -77,12 +74,12 @@ function toggleFullscreen(forceFull) {
 
 // Displays game over screen and plays death sfx
 function gameOver() {
-  clear();
   ctx.font = "30px Arial";
   ctx.fillStyle = "red";
   ctx.fillText("Game Over!", 50, 20);
   if (gameRunning) {
     beginSfx.pause();
+    wacaSfx.pause();
     deathSfx.play();
     gameRunning = false;
   }
@@ -90,11 +87,11 @@ function gameOver() {
 
 // Displays victory screen and plays victory sfx
 function gameWin() {
-  clear();
   ctx.font = "30px Arial";
   ctx.fillStyle = "yellow";
   ctx.fillText("You Win!", 50, 20);
   if (gameRunning) {
+    wacaSfx.pause();
     winSfx.play();
     gameRunning = false;
   }
@@ -322,11 +319,7 @@ class Pacman {
           x = 2;
           y = 2;
           break;
-        // case ' ':
-        //   animate();
-        //   break;
       }
-
       this.changeVelocity(x, y);
     });
     addEventListener('keyup', ({ key }) => {
@@ -347,44 +340,58 @@ class Pacman {
 
     // Motion control function
     addEventListener("deviceorientation", (event) => {
-      // Vinstri & Hægri ←→
-      if (event.beta > 100)
-        this.velocity.x = 2;
-      else if (event.beta < -100)
-        this.velocity.x = -2;
-      else
-        this.velocity.x = 0;
+      if (!useTouchControls) {
+        let x = this.velocity.x;
+        let y = this.velocity.y;
+        // Vinstri & Hægri ←→
+        if (event.beta > 100)
+          x = 2;
+        else if (event.beta < -100)
+          x = -2;
+        else
+          x = 0;
 
-      // Upp & Niður ↑↓
-      if (event.gamma > -80 && event.gamma < 0)
-        this.velocity.y = -2;
-      else if (event.gamma > 0 && event.gamma < 80)
-        this.velocity.y = 2;
+        // Upp & Niður ↑↓
+        if (event.gamma > -80 && event.gamma < 0)
+          y = -2;
+        else if (event.gamma > 0 && event.gamma < 80)
+          y = 2;
+        else
+          y = 0;
+
+        this.changeVelocity(x, y);
+      }
     });
 
     // Touch event functions
     canvas.addEventListener('touchstart', (event) => {
-      const touchX = event.touches[0].clientX; // Get the x-coordinate of the touch
-      const touchY = event.touches[0].clientY; // Get the y-coordinate of the touch
+      if (useTouchControls) {
+        let touchX = event.touches[0].clientX; // Get the x-coordinate of the touch
+        let touchY = event.touches[0].clientY; // Get the y-coordinate of the touch
 
-      const touchXDiff = touchX - this.position.x;
-      let x = this.velocity.x;
-      let y = this.velocity.y;
-      if (touchXDiff > 0)
-        x = 2;
-      else if (touchXDiff < 0)
-        x = -2;
+        let x = this.velocity.x;
+        let y = this.velocity.y;
+        let deadZone = 50;
 
-      const touchYDiff = touchY - this.position.y;
-      if (touchYDiff > 0)
-        y = 2;
-      else if (touchYDiff < 0)
-        y = -2;
+        let touchXDiff = touchX - this.position.x;
+        if (touchXDiff > deadZone)
+          x = 2;
+        else if (touchXDiff < -deadZone)
+          x = -2;
 
-      this.changeVelocity(x, y);
+        let touchYDiff = touchY - this.position.y;
+        if (touchYDiff > deadZone)
+          y = 2;
+        else if (touchYDiff < -deadZone)
+          y = -2;
+
+        console.log(touchXDiff, touchYDiff);
+        this.changeVelocity(x, y);
+      }
     });
     canvas.addEventListener('touchend', (event) => {
-      pacman.changeVelocity(0, 0);
+      if (gameRunning)
+        this.changeVelocity(0, 0);
     });
   }
 
@@ -404,16 +411,18 @@ class Pacman {
 
   // Update Pacman's angle based on the velocity
   changeVelocity(x, y) {
-    this.velocity.x = x;
-    this.velocity.y = y;
-    if (this.exists && (x !== 0 || y !== 0)) {
-      this.angle = Math.atan2(y, x);
-      if (wacaSfx.paused)
-        wacaSfx.play();
-    }
-    else {
-      // if (!wacaSfx.paused)
-      wacaSfx.pause();
+    if (gameRunning) {
+      this.velocity.x = x;
+      this.velocity.y = y;
+      if (this.exists && (x !== 0 || y !== 0)) {
+        this.angle = Math.atan2(y, x);
+        if (wacaSfx.paused)
+          wacaSfx.play();
+      }
+      else {
+        // if (!wacaSfx.paused)
+        wacaSfx.pause();
+      }
     }
   }
   // Method to draw Pacman
@@ -469,12 +478,12 @@ class Pacman {
         if (distance < this.radius + ghost.radius) {
           this.life--; // Decrease the lives value.
           pacman.resetLocation(); // move pacman to default location
-          navigator.vibrate([300, 200, 300]); // vibrate phone
+          navigator.vibrate([200, 50, 200]); // vibrate phone
           para.textContent = 'Score: ' + score + ' Lives: ' + this.life; // Update the stats display.
           console.log(para.textContent);
           if (this.exists && this.life < 1) {
             this.exists = false;
-            navigator.vibrate([500, 200, 300, 200, 300, 200, 3000]); // vibrate phone
+            navigator.vibrate([300, 50, 100, 50, 100, 200, 1500]); // vibrate phone
             return true;
           }
         }
@@ -580,22 +589,33 @@ const ghosts = [
 // Create Pacman
 const pacman = new Pacman({ position: { x: 100, y: 100 } }, { velocity: { x: 0, y: 0 } });
 
+var useTouchControls = true;
+function toggleMobileControl() {
+  // var mobileToggleButton = document.getElementById("mobileControlToggle"); // Get the button element
+  useTouchControls = !useTouchControls;
+  // if (useTouchControls && mobileToggleButton) {
+  //   mobileToggleButton.value = 'Use Orientation';
+  // } else{
+  //   mobileToggleButton.value = 'Use Touch';
+  // }
+}
+
 function setOrientation() {
   if (screen.orientation && screen.orientation.lock) {
     screen.orientation
       .lock("landscape")
       .then(function () { // Orientation locked successfully
         console.log("Orientation locked to landscape.");
-        document.getElementById("fullscreenButton").style.color = "rgb(0,255,0)";
+        // document.getElementById("fullscreenButton").style.color = "rgb(0,255,0)";
       })
       .catch(function (error) { // Handle any errors
         console.error("Error locking orientation:", error);
-        document.getElementById("fullscreenButton").style.color = "rgb(255,255,0)";
+        // document.getElementById("fullscreenButton").style.color = "rgb(255,255,0)";
       });
   } else {
     // If orientation locking is not supported, you can display a message or perform another action.
     console.warn("Orientation locking is not supported in this browser.");
-    document.getElementById("fullscreenButton").style.color = "rgb(0,0,255)";
+    // document.getElementById("fullscreenButton").style.color = "rgb(0,0,255)";
   }
 
   screen.orientation.addEventListener("change", (event) => {
@@ -607,7 +627,7 @@ function setOrientation() {
 
 function runGame() {
   document.addEventListener('keydown', (event) => {
-    if (!gameRunning) {
+    if (!gameRunning && event.key == ' ') {
       toggleFullscreen(true);
       setOrientation();
       document.getElementById("startScreen").style.display = "none";
@@ -633,6 +653,8 @@ function startGame() {
 
 // Main animation loop
 function animate() {
+  requestAnimationFrame(animate);
+
   clear();
 
   dots.forEach(dot => {
@@ -664,8 +686,6 @@ function animate() {
   if (score > 49) {
     gameWin();
   }
-
-  requestAnimationFrame(animate);
 }
 
 
